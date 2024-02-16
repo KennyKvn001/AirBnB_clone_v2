@@ -22,7 +22,8 @@ def do_deploy(archive_path):
         archive_name = os.path.basename(archive_path)
         archive_name_no_ext = os.path.splitext(archive_name)[0]
 
-        # Uncompress the archive to /data/web_static/releases/<archive filename without extension>
+        # Uncompress the archive to /data/web_static/releases/<archive filename
+        # without extension>
         run("mkdir -p /data/web_static/releases/{}/".format(archive_name_no_ext))
         run(
             "tar -xzf /tmp/{} -C /data/web_static/releases/{}/".format(
