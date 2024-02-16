@@ -1,8 +1,7 @@
 #!/usr/bin/python3
-from fabric.api import env, put, run, local
-from os.path import exists, isdir
+from fabric.api import env, put, run, cd
 import os.path
-import re
+
 
 env.user = "ubuntu"
 env.hosts = ["204.236.196.88", "34.224.218.238"]
@@ -11,34 +10,44 @@ env.key_filename = "~/.ssh/id_rsa"
 
 def do_deploy(archive_path):
     """
-    Distributes archive to web servers
+    Deploys the archive to both web servers.
+
+    Args:
+        archive_path (str): Path to the archive.
+
+    Returns:
+        bool: True if successful, False otherwise.
     """
-    if not exists(archive_path):
-        return False
-    put(archive_path, "/tmp/")
-    filename = re.search(r"[^/]+$", archive_path).group(0)
-    folder = "/data/web_static/releases/{}".format(
-        os.path.splitext(filename)[0])
 
-    if not exists(folder):
-        run("mkdir -p {}".format(folder))
+    success = True
+    try:
+        for host in env.hosts:
+            with cd(host):
+                # Upload archive to /tmp/
+                put(archive_path, "/tmp/")
 
-    run("tar -xzf /tmp/{} -C {}".format(filename, folder))
+                # Uncompress archive to releases/
+                archive_filename = os.path.basename(archive_path)
+                release_dir = (
+                    f"/data/web_static/releases/{archive_filename.split('.')[0]}"
+                )
+                run(f"tar -xzf /tmp/{archive_filename} -C {release_dir}")
 
-    run("rm /tmp/{}".format(filename))
+                # Delete archive from /tmp/
+                run(f"rm /tmp/{archive_filename}")
 
-    run("mv {}/web_static/* {}".format(folder, folder))
+                # Delete current symbolic link (if exists)
+                try:
+                    run("rm /data/web_static/current")
+                except Exception as e:
+                    # Ignore if link doesn't exist
+                    pass
 
-    run("rm -rf {}/web_static".format(folder))
+                # Create new symbolic link to the new version
+                run(f"ln -sf {release_dir} /data/web_static/current")
 
-    run("rm -rf /data/web_static/current")
+    except Exception as e:
+        print(f"Error deploying on {host}: {e}")
+        success = False
 
-    run("ln -s {} /data/web_static/current".format(folder))
-
-    if not isdir("/var/www/html/hbnb_static"):
-        run("sudo mkdir -p /var/www/html/hbnb_static")
-
-    run("sudo cp -r /data/web_static/current/* /var/www/html/hbnb_static/")
-
-    print("New version deployed!")
-    return True
+    return success
