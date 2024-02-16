@@ -11,7 +11,7 @@ def do_pack():
     try:
         filename = "versions/web_static_{}.tgz".format(date)
         local("mkdir -p versions")
-        local(f"tar -cvzf {filename}  web_static")
+        local(f"tar -cvzf {filename} web_static")
         return filename
     except:
         return None
