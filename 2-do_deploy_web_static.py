@@ -9,45 +9,54 @@ env.key_filename = "~/.ssh/id_rsa"
 
 
 def do_deploy(archive_path):
-    """
-    Deploys the archive to both web servers.
+    """Distributes an archive to your web servers"""
+    if not os.path.exists(archive_path):
+        return False
 
-    Args:
-        archive_path (str): Path to the archive.
-
-    Returns:
-        bool: True if successful, False otherwise.
-    """
-
-    success = True
     try:
-        for host in env.hosts:
-            with cd(host):
-                # Upload archive to /tmp/
-                put(archive_path, "/tmp/")
+        # Upload the archive to the /tmp/ directory of the web server
+        put(archive_path, "/tmp/")
 
-                # Uncompress archive to releases/
-                archive_filename = os.path.basename(archive_path)
-                release_dir = (
-                    f"/data/web_static/releases/{archive_filename.split('.')[0]}"
-                )
-                run(f"tar -xzf /tmp/{archive_filename} -C {release_dir}")
+        # Extract archive filename
+        archive_name = os.path.basename(archive_path)
+        archive_name_no_ext = os.path.splitext(archive_name)[0]
 
-                # Delete archive from /tmp/
-                run(f"rm /tmp/{archive_filename}")
+        # Uncompress the archive to /data/web_static/releases/<archive filename
+        # without extension>
+        run("mkdir -p /data/web_static/releases/{}".format(archive_name_no_ext))
+        run(
+            "tar -xzf /tmp/{} -C /data/web_static/releases/{}/".format(
+                archive_name, archive_name_no_ext
+            )
+        )
 
-                # Delete current symbolic link (if exists)
-                try:
-                    run("rm /data/web_static/current")
-                except Exception as e:
-                    # Ignore if link doesn't exist
-                    pass
+        # Delete the archive from the web server
+        run("rm /tmp/{}".format(archive_name))
 
-                # Create new symbolic link to the new version
-                run(f"ln -sf {release_dir} /data/web_static/current")
+        # Move contents to proper location
+        run(
+            "mv /data/web_static/releases/{}/web_static/* /data/web_static/releases/{}/".format(
+                archive_name_no_ext, archive_name_no_ext
+            )
+        )
 
+        # Remove the now empty directory
+        run(
+            "rm -rf /data/web_static/releases/{}/web_static".format(archive_name_no_ext)
+        )
+
+        # Delete the symbolic link /data/web_static/current from the web server
+        run("rm -rf /data/web_static/current")
+
+        # Create a new symbolic link
+        run(
+            "ln -s /data/web_static/releases/{} /data/web_static/current".format(
+                archive_name_no_ext
+            )
+        )
+
+        print("New version deployed!")
+        return True
     except Exception as e:
-        print(f"Error deploying on {host}: {e}")
-        success = False
-
-    return success
+        print("Deployment failed:", e)
+        return False
