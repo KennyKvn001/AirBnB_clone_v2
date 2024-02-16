@@ -24,7 +24,8 @@ def do_deploy(archive_path):
         archive_name = os.path.basename(archive_path)
         archive_name_no_ext = os.path.splitext(archive_name)[0]
 
-        # Uncompress the archive to /data/web_static/releases/<archive filename without extension>
+        # Uncompress the archive to /data/web_static/releases/<archive filename
+        # without extension>
         print("Extracting archive...")
         run("mkdir -p /data/web_static/releases/{}/".format(archive_name_no_ext))
         run(
@@ -57,7 +58,9 @@ def do_deploy(archive_path):
         index_path = "/data/web_static/releases/{}/my_index.html".format(
             archive_name_no_ext
         )
-        index_exists = run("test -f {}".format(index_path), warn=True).succeeded
+        index_exists = run(
+            "test -f {}".format(index_path),
+            warn=True).succeeded
 
         if index_exists:
             print("my_index.html found at:", index_path)
