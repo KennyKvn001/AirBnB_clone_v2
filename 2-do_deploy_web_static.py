@@ -1,13 +1,11 @@
 #!/usr/bin/python3
-""" Deploy static, task 2. Deploy archive!
+""" Deploy static
 """
 from fabric.api import env, put, run
 from os import path
 
-env.hosts = ["204.236.196.88", "34.224.218.238"]
+env.hosts = ["3.88.91.124", "54.208.153.0"]
 env.user = "ubuntu"
-env.key = "~/.ssh/school"
-env.port = 22
 
 
 def do_deploy(archive_path):
