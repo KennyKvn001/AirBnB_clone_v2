@@ -1,38 +1,42 @@
 #!/usr/bin/python3
-""" alu-Airbnb_clone_v2 - Deploy static, task 4. Keep it clean!
+""" 0x03. AirBnB clone - Deploy static, task 4. Keep it clean!
 """
-from fabric.api import env, run, cd, sudo
+from fabric.api import env, run, local
 
-env.hosts = ["204.236.196.88", "34.224.218.238"]
+env.hosts = ["35.196.49.136", "34.74.70.223"]
 env.user = "ubuntu"
 
 
-# Replace with the number of archives to keep
-num_kp = 2
-
-
-def do_clean(number=num_kp):
-    """
-    Deletes out-of-date archives locally and on web servers.
+def do_clean(number=0):
+    """Deletes out-of-date .tgz archives of `web_static/`, both local and
+    remote, created by `do_pack`.
 
     Args:
-        number: Number of archives (including the most recent) to keep.
+       (str): number of archives, including the most recent, to keep. If 0 or
+            1, only the most recent is kept.
+
     """
+    number = eval(number)
+    if number == 0:
+        number = 1
+    # local removal of tgz archives
+    pipe = " ".join(
+        (
+            "ls -t versions/ | tail -n +{:d} |".format(number + 1),
+            'sed -e "s/^/versions\//" |',
+            "xargs rm -rf",
+        )
+    )
+    local(pipe)
 
-    with cd("versions"):
-        # Get a list of archive filenames sorted by reverse creation time
-        archives = sorted(run("ls -rt").split(), reverse=True)
-
-        # Delete all but the first `number` archives
-        for archive in archives[number:]:
-            run("rm %s" % archive)
-
-    # Run cleanup on both web servers
-    for host in env.hosts:
-        with cd("%s/releases" % host):
-            # Connect to the server and run do_clean with the same number
-            sudo("fab -H %s do_clean:%s" % (host, number))
-
-
-if __name__ == "__main__":
-    do_clean()
+    # run on server to remove outdated directories in web_static/releases/
+    pipe = " ".join(
+        (
+            "ls -t /data/web_static/releases/ |",
+            'sed -e "/test/d" |',
+            "tail -n +{:d} |".format(number + 1),
+            'sed -e "s/^/\/data\/web_static\/releases\//" |',
+            "xargs rm -rf",
+        )
+    )
+    run(pipe)
