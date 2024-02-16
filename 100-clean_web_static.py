@@ -8,10 +8,10 @@ env.user = "ubuntu"
 
 
 # Replace with the number of archives to keep
-NUMBER_TO_KEEP = 2
+num_kp = 2
 
 
-def do_clean(number=NUMBER_TO_KEEP):
+def do_clean(number=num_kp):
     """
     Deletes out-of-date archives locally and on web servers.
 
