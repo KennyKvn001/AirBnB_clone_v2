@@ -9,7 +9,8 @@ env.key_filename = "~/.ssh/id_rsa"
 
 
 def do_deploy(archive_path):
-    """Distributes a .tgz archive from the contents of `web_static/` in alu-AirBnB_clone_2 repo to the web servers
+    """Distributes a .tgz archive from the contents of `web_static/`
+    in alu-AirBnB_clone_2 repo to the web servers
 
     Retruns:
         (bool): `True` if all operations successful, `False` otherwise
