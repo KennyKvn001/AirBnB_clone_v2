@@ -1,5 +1,9 @@
 #!/usr/bin/python3
-""" Fabric script that distributes an archive to your web servers. """
+""" Fabric script that distributes an archive to your web servers.
+    The script should do the following:
+    - create versions folder
+    - compress web_static folder
+    - create archive file"""
 
 from fabric.api import local
 from datetime import datetime
