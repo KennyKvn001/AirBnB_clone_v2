@@ -67,7 +67,10 @@ def html_odd_or_even(n):
     substitute text to display if int is odd or even
     """
     odd_or_even = "even" if (n % 2 == 0) else "odd"
-    return render_template("6-number_odd_or_even.html", n=n, odd_or_even=odd_or_even)
+    return render_template(
+        "6-number_odd_or_even.html",
+        n=n,
+        odd_or_even=odd_or_even)
 
 
 if __name__ == "__main__":
